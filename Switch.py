@@ -77,10 +77,12 @@ class Switch(StpSwitch):
                     self.switchThrough = message.origin
                     self.activeLinks.add(self.switchThrough)
                     self.send_neighbors_messages()
+                # elif message.origin > self.switchThrough and self.switchThrough in self.activeLinks:
+                #     self.activeLinks.remove(self.switchThrough)
+
             else:
                 if message.pathThrough:
                     self.activeLinks.add(message.origin)
-                ###?
                 else:
                     if message.origin in self.activeLinks: ##??
                         self.activeLinks.remove(message.origin)
