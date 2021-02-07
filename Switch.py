@@ -37,8 +37,8 @@ class Switch(StpSwitch):
         # TODO: Define a data structure to keep track of which links are part of / not part of the spanning tree.
         self.root = self.switchID
         self.distance = 0
-        self.activeLinks = []
-        self.switchThrough = [self.switchID]
+        self.switchThrough = self.switchID
+        self.activeLinks = set([])
 
     def send_initial_messages(self):
         # TODO: This function needs to create and send the initial messages from this switch.
@@ -52,6 +52,37 @@ class Switch(StpSwitch):
     def process_message(self, message):
         # TODO: This function needs to accept an incoming message and process it accordingly.
         #      This function is called every time the switch receives a new message.
+        if message.root < self.root:
+            self.root = message.root
+            self.distance += 1
+            self.switchThrough = message.origin
+            self.activeLinks.add(self.switchThrough)
+            # self, claimedRoot, distanceToRoot, originID, destinationID, pathThrough
+            for neighbor in list(self.links):
+                path_through = True if neighbor in self.activeLinks else False
+                msg = Message(self.root, self.distance, self.switchID, neighbor, path_through)
+                self.send_message(msg)
+        elif message.root == self.root:
+            if message.distance + 1 < self.distance:
+                self.distance += 1
+                self.switchThrough = message.origin
+                self.activeLinks = {self.switchThrough}
+                for neighbor in list(self.links):
+                    path_through = True if neighbor in self.activeLinks else False
+                    msg = Message(self.root, self.distance, self.switchID, neighbor, path_through)
+                    self.send_message(msg)
+            elif message.distance + 1 == self.distance:
+                if message.origin < self.switchThrough:
+                    self.activeLinks.remove(self.switchThrough)
+                    self.switchThrough = message.origin
+                    self.activeLinks.add(self.switchThrough)
+                for neighbor in list(self.links):
+                    path_through = True if neighbor in self.activeLinks else False
+                    msg = Message(self.root, self.distance, self.switchID, neighbor, path_through)
+                    self.send_message(msg)
+            else:
+                if message.pathThrough:
+                    self.activeLinks.add(message.origin)
         return
 
     def generate_logstring(self):

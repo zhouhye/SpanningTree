@@ -51,10 +51,13 @@ class Topology(object):
 
         for switch in self.switches:
             self.switches[switch].send_initial_messages()
-
         while len(self.messages) > 0:
             msg = self.messages.pop(0)
+            print(msg.__dict__)
             self.switches[msg.destination].process_message(msg)
+        print('##################################')
+        for s in self.switches:
+            print(self.switches[s].__dict__)
 
     def log_spanning_tree(self, filename):
         # This function drives the logging of the text file representing the spanning tree.  
