@@ -22,8 +22,7 @@
 # Copyright 2016 Michael Brown, updated by Kelly Parks
 #           Based on prior work by Sean Donovan, 2015, updated for new VM by Jared Scott and James Lohse
 
-# from Message import *
-import Message
+from Message import *
 from StpSwitch import *
 
 
@@ -43,7 +42,7 @@ class Switch(StpSwitch):
 
     def send_neighbors_messages(self):
         for neighbor in list(self.links):
-            path_through = True if neighbor in self.activeLinks else False
+            path_through = (neighbor == self.switchThrough)
             msg = Message(self.root, self.distance, self.switchID, neighbor, path_through)
             self.send_message(msg)
 
@@ -52,7 +51,7 @@ class Switch(StpSwitch):
         #      Messages are sent via the superclass method send_message(Message msg) - see Message.py.
         #      Use self.send_message(msg) to send this.  DO NOT use self.topology.send_message(msg)
         for neighbor in self.links:
-            msg = Message(self.root, 0, self.switchID, neighbor, False)
+            msg = Message(self.root, self.distance, self.switchID, neighbor, False)
             self.send_message(msg)
         return
 
@@ -76,17 +75,13 @@ class Switch(StpSwitch):
                     self.activeLinks.remove(self.switchThrough)
                     self.switchThrough = message.origin
                     self.activeLinks.add(self.switchThrough)
-                    self.send_neighbors_messages()
-                # elif message.origin > self.switchThrough and self.switchThrough in self.activeLinks:
-                #     self.activeLinks.remove(self.switchThrough)
-
+                self.send_neighbors_messages()
             else:
                 if message.pathThrough:
                     self.activeLinks.add(message.origin)
                 else:
-                    if message.origin in self.activeLinks: ##??
+                    if message.origin in self.activeLinks:
                         self.activeLinks.remove(message.origin)
-
         return
 
     def generate_logstring(self):
