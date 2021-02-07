@@ -22,7 +22,8 @@
 # Copyright 2016 Michael Brown, updated by Kelly Parks
 #           Based on prior work by Sean Donovan, 2015, updated for new VM by Jared Scott and James Lohse
 
-from Message import *
+# from Message import *
+import Message
 from StpSwitch import *
 
 
@@ -39,6 +40,12 @@ class Switch(StpSwitch):
         self.distance = 0
         self.switchThrough = self.switchID
         self.activeLinks = set([])
+
+    def send_neighbors_messages(self):
+        for neighbor in list(self.links):
+            path_through = True if neighbor in self.activeLinks else False
+            msg = Message(self.root, self.distance, self.switchID, neighbor, path_through)
+            self.send_message(msg)
 
     def send_initial_messages(self):
         # TODO: This function needs to create and send the initial messages from this switch.
@@ -58,28 +65,20 @@ class Switch(StpSwitch):
             self.switchThrough = message.origin
             self.activeLinks.add(self.switchThrough)
             # self, claimedRoot, distanceToRoot, originID, destinationID, pathThrough
-            for neighbor in list(self.links):
-                path_through = True if neighbor in self.activeLinks else False
-                msg = Message(self.root, self.distance, self.switchID, neighbor, path_through)
-                self.send_message(msg)
+            self.send_neighbors_messages()
         elif message.root == self.root:
             if message.distance + 1 < self.distance:
                 self.distance += 1
                 self.switchThrough = message.origin
                 self.activeLinks = {self.switchThrough}
-                for neighbor in list(self.links):
-                    path_through = True if neighbor in self.activeLinks else False
-                    msg = Message(self.root, self.distance, self.switchID, neighbor, path_through)
-                    self.send_message(msg)
+                self.send_neighbors_messages()
+
             elif message.distance + 1 == self.distance:
                 if message.origin < self.switchThrough:
                     self.activeLinks.remove(self.switchThrough)
                     self.switchThrough = message.origin
                     self.activeLinks.add(self.switchThrough)
-                for neighbor in list(self.links):
-                    path_through = True if neighbor in self.activeLinks else False
-                    msg = Message(self.root, self.distance, self.switchID, neighbor, path_through)
-                    self.send_message(msg)
+                self.send_neighbors_messages()
             else:
                 if message.pathThrough:
                     self.activeLinks.add(message.origin)
@@ -98,4 +97,3 @@ class Switch(StpSwitch):
         #      2 - 1, 2 - 3
         #      A full example of a valid output file is included (sample_output.txt) with the project skeleton.
         return "switch log string, do not return a static string, build the log string"
-
