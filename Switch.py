@@ -96,4 +96,8 @@ class Switch(StpSwitch):
         #      for switch 2 would have the following text:
         #      2 - 1, 2 - 3
         #      A full example of a valid output file is included (sample_output.txt) with the project skeleton.
-        return "switch log string, do not return a static string, build the log string"
+        log_list = []
+        for active_link in sorted(self.activeLinks):
+            log_list.append(f"{self.switchID} - {active_link}")
+        log_string = ', '.join(log_list)
+        return log_string

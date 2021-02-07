@@ -30,4 +30,4 @@ topo = Topology(sys.argv[1])
 topo.run_spanning_tree()
 
 # Close the logfile
-#topo.log_spanning_tree(sys.argv[2])
+topo.log_spanning_tree(sys.argv[2])
