@@ -61,27 +61,30 @@ class Switch(StpSwitch):
         #      This function is called every time the switch receives a new message.
         if message.root < self.root:
             self.root = message.root
-            self.distance += 1
+            self.distance = message.distance + 1
             self.switchThrough = message.origin
             self.activeLinks.add(self.switchThrough)
-            # self, claimedRoot, distanceToRoot, originID, destinationID, pathThrough
             self.send_neighbors_messages()
         elif message.root == self.root:
             if message.distance + 1 < self.distance:
-                self.distance += 1
+                self.distance = message.distance + 1
                 self.switchThrough = message.origin
-                self.activeLinks = {self.switchThrough}
+                self.activeLinks.add(self.switchThrough)
                 self.send_neighbors_messages()
-
             elif message.distance + 1 == self.distance:
                 if message.origin < self.switchThrough:
                     self.activeLinks.remove(self.switchThrough)
                     self.switchThrough = message.origin
                     self.activeLinks.add(self.switchThrough)
-                self.send_neighbors_messages()
+                    self.send_neighbors_messages()
             else:
                 if message.pathThrough:
                     self.activeLinks.add(message.origin)
+                ###?
+                else:
+                    if message.origin in self.activeLinks: ##??
+                        self.activeLinks.remove(message.origin)
+
         return
 
     def generate_logstring(self):
